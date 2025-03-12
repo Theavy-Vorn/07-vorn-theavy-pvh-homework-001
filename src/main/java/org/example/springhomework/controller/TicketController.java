@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.OutputStream;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,10 +15,12 @@ import java.util.List;
 @RequestMapping("/api/v1/tickets")
 public class TicketController {
     private List<Ticket> ticketList = new ArrayList<>();
+    private int Id =1;
     public TicketController(){
-        ticketList.add(new Ticket(1, "Theavy", LocalDate.now(), "Phnom Penh", 2.0, true, false, "D1"));
-        ticketList.add(new Ticket(2, "Makara", LocalDate.now(), "Kandal", 3, true, false, "D2"));
-        ticketList.add(new Ticket(3, "Kanika", LocalDate.now(), "Takeo", 4, false, true, "D3"));
+
+        ticketList.add(new Ticket(Id++, "Theavy", LocalDate.now(), "Phnom Penh", 2.0, true, false, "D1"));
+        ticketList.add(new Ticket(Id++, "Makara", LocalDate.now(), "Kandal", 3, true, false, "D2"));
+        ticketList.add(new Ticket(Id++, "Kanika", LocalDate.now(), "Takeo", 4, false, true, "D3"));
     }
 
     @GetMapping
@@ -29,7 +32,7 @@ public class TicketController {
         ticketList.add(postTicket);
         return postTicket;
     }
-    @GetMapping("/{id}")
+    @GetMapping("/{ticket-id}")
     public List<Ticket> searchById(@PathVariable int id,OutputStream outputStream) {
         List<Ticket> searchId = new ArrayList<>();
         for (Ticket Id : ticketList) {
@@ -51,8 +54,20 @@ public class TicketController {
         return searchName;
     }
 
-    @PutMapping("/id")
-    public Ticket updateSearch(@RequestParam int id , @RequestBody TicketRequest updateTicket){
+    @GetMapping("/filter")
+    public Ticket filterTicket(@RequestParam boolean status, @RequestParam LocalDateTime travelDate){
+        System.out.println(status);
+        for(Ticket filTicket : ticketList){
+            if(filTicket.getTicketStatus().equals(status) && filTicket.getTravelDate().equals(travelDate)){
+
+            }
+        }
+//        return filterTicket;
+        return null;
+    }
+
+    @PutMapping("/{ticket-id}")
+    public Ticket updateSearch(@PathVariable int id , @RequestBody TicketRequest updateTicket){
         for(Ticket upTicket: ticketList ){
            if(upTicket.getId()==id){
                 upTicket.setPassengerName(updateTicket.getPassengerName());
@@ -67,12 +82,20 @@ public class TicketController {
                 return upTicket;
            }
 
-
         }
 
         return null;
     }
 
-
+    @DeleteMapping("/{ticket-id}")
+    public String deleteTicket(@PathVariable int id){
+       for(Ticket delTicket : ticketList){
+           if(delTicket.getId()==id){
+                ticketList.remove(delTicket);
+           }
+           break;
+       }
+       return "Delete success !";
+    }
 
 }
