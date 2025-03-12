@@ -2,7 +2,10 @@ package org.example.springhomework.controller;
 
 import io.swagger.v3.oas.annotations.Parameter;
 import org.example.springhomework.Request.TicketRequest;
+import org.example.springhomework.model.entity.ApiResponse;
 import org.example.springhomework.model.entity.Ticket;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.OutputStream;
@@ -15,8 +18,9 @@ import java.util.List;
 @RequestMapping("/api/v1/tickets")
 public class TicketController {
     private List<Ticket> ticketList = new ArrayList<>();
-    private int Id =1;
-    public TicketController(){
+    private int Id = 1;
+
+    public TicketController() {
 
         ticketList.add(new Ticket(Id++, "Theavy", LocalDate.now(), "Phnom Penh", 2.0, true, false, "D1"));
         ticketList.add(new Ticket(Id++, "Makara", LocalDate.now(), "Kandal", 3, true, false, "D2"));
@@ -27,27 +31,33 @@ public class TicketController {
     public List<Ticket> getTickets() {
         return ticketList;
     }
+
     @PostMapping
-    public Ticket addTicket(@RequestBody Ticket postTicket){
+    public ResponseEntity<ApiResponse<Ticket>> addTicket(@RequestBody Ticket postTicket) {
+        postTicket.setId(Id++);
         ticketList.add(postTicket);
-        return postTicket;
+        ApiResponse<Ticket> apiResponse = new ApiResponse<>
+                (true, "Insert Successfully", HttpStatus.OK, postTicket, LocalDateTime.now());
+        return ResponseEntity.ok(apiResponse);
     }
-    @GetMapping("/{ticket-id}")
-    public List<Ticket> searchById(@PathVariable int id,OutputStream outputStream) {
+
+    @GetMapping("/{id}")
+    public List<Ticket> searchById(@PathVariable int id) {
         List<Ticket> searchId = new ArrayList<>();
         for (Ticket Id : ticketList) {
-           if(Id.getId()==id){
-              searchId.add(Id);
-           }
+            if (Id.getId() == id) {
+                searchId.add(Id);
+            }
         }
-        return  searchId;
+        return searchId;
     }
+
     //@RequestParam ==?theavy
     @GetMapping("/name")
-    public List<Ticket> searchByName(@RequestParam String name){
+    public List<Ticket> searchByName(@RequestParam String name) {
         List<Ticket> searchName = new ArrayList<>();
-        for(Ticket Name: ticketList){
-            if(Name.getPassengerName().toLowerCase().contains(name.toLowerCase())){
+        for (Ticket Name : ticketList) {
+            if (Name.getPassengerName().toLowerCase().contains(name.toLowerCase())) {
                 searchName.add(Name);
             }
         }
@@ -55,21 +65,20 @@ public class TicketController {
     }
 
     @GetMapping("/filter")
-    public Ticket filterTicket(@RequestParam boolean status, @RequestParam LocalDateTime travelDate){
-        System.out.println(status);
-        for(Ticket filTicket : ticketList){
-            if(filTicket.getTicketStatus().equals(status) && filTicket.getTravelDate().equals(travelDate)){
-
+    public List<Ticket> filterTickets(@RequestParam boolean status, @RequestParam LocalDateTime travelDate) {
+        List<Ticket> filteredTickets = new ArrayList<>();
+        for (Ticket filTicket : ticketList) {
+            if (filTicket.getTicketStatus() == status && filTicket.getTravelDate().equals(travelDate)) {
+                filteredTickets.add(filTicket);
             }
         }
-//        return filterTicket;
-        return null;
+        return filteredTickets;
     }
 
-    @PutMapping("/{ticket-id}")
-    public Ticket updateSearch(@PathVariable int id , @RequestBody TicketRequest updateTicket){
-        for(Ticket upTicket: ticketList ){
-           if(upTicket.getId()==id){
+    @PutMapping("/{ticket_id}")
+    public ResponseEntity<ApiResponse<Ticket>> updateSearch(@PathVariable int ticket_id, @RequestBody TicketRequest updateTicket) {
+        for (Ticket upTicket : ticketList) {
+            if (upTicket.getId() == ticket_id) {
                 upTicket.setPassengerName(updateTicket.getPassengerName());
                 upTicket.setTravelDate(updateTicket.getTravelDate());
                 upTicket.setPrice(updateTicket.getPrice());
@@ -79,23 +88,32 @@ public class TicketController {
                 upTicket.setTicketStatus(updateTicket.getTicketStatus());
                 upTicket.setSeatNumber(updateTicket.getSeatNumber());
 
-                return upTicket;
-           }
+                ApiResponse<Ticket> apiResponse = new ApiResponse<>
+                        (true, "Updated Successfully", HttpStatus.OK, upTicket, LocalDateTime.now());
+
+                return ResponseEntity.ok(apiResponse);
+            }
 
         }
 
-        return null;
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiResponse<>(false, "Ticket not found", HttpStatus.NOT_FOUND, null, LocalDateTime.now()));
     }
 
-    @DeleteMapping("/{ticket-id}")
-    public String deleteTicket(@PathVariable int id){
-       for(Ticket delTicket : ticketList){
-           if(delTicket.getId()==id){
+    @DeleteMapping("/{ticket_id}")
+    public ResponseEntity<ApiResponse<Ticket>> deleteTicket(@PathVariable int ticket_id) {
+        for (Ticket delTicket : ticketList) {
+            if (delTicket.getId() == ticket_id) {
                 ticketList.remove(delTicket);
-           }
-           break;
-       }
-       return "Delete success !";
-    }
+                ApiResponse<Ticket> apiResponse = new ApiResponse<>
+                        (true, "Deleted Successfully", HttpStatus.OK, delTicket, LocalDateTime.now());
 
+                return ResponseEntity.ok(apiResponse);
+            }
+
+        }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiResponse<>(false, "Ticket not found", HttpStatus.NOT_FOUND, null, LocalDateTime.now()));
+    }
 }
+

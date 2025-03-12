@@ -7,6 +7,7 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 public class Ticket {
+
     private int Id;
     private String passengerName;
     private LocalDate travelDate;
